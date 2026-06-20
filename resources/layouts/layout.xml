@@ -1,0 +1,13 @@
+<layout id="MainLayout">
+    <!-- Title -->
+    <label text="SOLARIS MINIMAL" x="center" y="15%" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_LT_GRAY" />
+    
+    <!-- Message Label -->
+    <label id="MessageLabel" text="Press Select!" x="center" y="45%" font="Graphics.FONT_MEDIUM" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_WHITE" />
+    
+    <!-- Counter Label -->
+    <label id="CounterLabel" text="Count: 0" x="center" y="65%" font="Graphics.FONT_SMALL" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_BLUE" />
+
+    <!-- Help Instruction -->
+    <label text="Press BACK to reset" x="center" y="85%" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_DK_GRAY" />
+</layout>

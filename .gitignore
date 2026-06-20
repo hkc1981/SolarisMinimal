@@ -1,0 +1,7 @@
+bin/
+gen/
+mir/
+internal-mir/
+source/developer_key
+*.prg
+*.debug.xml
