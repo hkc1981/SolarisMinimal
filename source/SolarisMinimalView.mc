@@ -25,6 +25,7 @@ class SolarisMinimalView extends WatchUi.WatchFace {
     private var _dateText = "";
     private var _batteryText = "";
     private var _batteryDaysText = "";
+    private var _solarText = "";
     
     // Heart rate tracking optimization variables
     private var _lastHrReadSec = -1;
@@ -68,21 +69,29 @@ class SolarisMinimalView extends WatchUi.WatchFace {
         // --- DRAW TIME (Hours:Minutes) ---
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         
-        var hourMinuteFont = Graphics.FONT_NUMBER_HOT;
+        var hourFont = Graphics.FONT_NUMBER_MEDIUM;
+        var minuteFont = Graphics.FONT_NUMBER_HOT;
         var colFont = Graphics.FONT_LARGE;
         var secFont = Graphics.FONT_TINY;
         
-        var hhWidth = dc.getTextWidthInPixels(hhString, hourMinuteFont);
+        var hhWidth = dc.getTextWidthInPixels(hhString, hourFont);
         var colWidth = dc.getTextWidthInPixels(":", colFont);
-        var mmWidth = dc.getTextWidthInPixels(mmString, hourMinuteFont);
+        var mmWidth = dc.getTextWidthInPixels(mmString, minuteFont);
         
-        var fontHeight = dc.getFontHeight(hourMinuteFont);
-        // Centered vertically
-        var numY = centerY - (fontHeight / 2) - 5;
+        var hourHeight = dc.getFontHeight(hourFont);
+        var minuteHeight = dc.getFontHeight(minuteFont);
         
-        // Dynamically align colons vertically with the giant FONT_NUMBER_MEDIUM
-        var colY = numY + (fontHeight - dc.getFontHeight(colFont)) / 2;
-        var secY = numY + fontHeight - 22; // Position seconds directly below Minutes (tightly spaced)
+        // Centered vertically based on minute height
+        var numY = centerY - (minuteHeight / 2) - 5;
+        
+        // Align hours vertically to center with the minutes
+        var hourNumY = numY + (minuteHeight - hourHeight) / 2;
+        
+        // Dynamically align colons vertically with the giant FONT_NUMBER_HOT
+        var colY = numY + (minuteHeight - dc.getFontHeight(colFont)) / 2;
+        
+        // Position seconds directly below Minutes (tightly spaced relative to minutes)
+        var secY = numY + minuteHeight - 16;
         
         // Red line & Battery parameters (using 5px spacing)
         var lineWidth = 3;
@@ -94,7 +103,7 @@ class SolarisMinimalView extends WatchUi.WatchFace {
         
         var batteryFont = Graphics.FONT_XTINY;
 
-        // Get date, battery info (cached, only update when minute changes or first run)
+        // Get date, battery, and solar info (cached, only update when minute changes or first run)
         if (_lastMin != clockTime.min || _dateText.equals("")) {
             _lastMin = clockTime.min;
             
@@ -104,17 +113,25 @@ class SolarisMinimalView extends WatchUi.WatchFace {
             
             // Get battery stats
             var stats = System.getSystemStats();
-            _batteryText = "PW: " + stats.battery.format("%d") + "%";
+            _batteryText = "PW: " + stats.battery.format("%d") + "0%";
             
             if (stats has :batteryInDays && stats.batteryInDays != null) {
                 _batteryDaysText = "D-: " + stats.batteryInDays.format("%d") + "D";
             } else {
                 _batteryDaysText = "-- d";
             }
+            
+            // Get solar intensity info
+            var solarIntensity = 0;
+            if (stats has :solarIntensity && stats.solarIntensity != null) {
+                solarIntensity = stats.solarIntensity;
+            }
+            _solarText = "SLR: " + solarIntensity.format("%d");
         }
         var dateTextWidth = dc.getTextWidthInPixels(_dateText, batteryFont);
         var batteryTextWidth = dc.getTextWidthInPixels(_batteryText, batteryFont);
         var batteryDaysTextWidth = dc.getTextWidthInPixels(_batteryDaysText, batteryFont);
+        var solarTextWidth = dc.getTextWidthInPixels(_solarText, batteryFont);
 
         // Get heart rate info (with cached logic to avoid frequent history database access)
         var hr = null;
@@ -152,6 +169,9 @@ class SolarisMinimalView extends WatchUi.WatchFace {
         if (batteryDaysTextWidth > rightBlockWidth) {
             rightBlockWidth = batteryDaysTextWidth;
         }
+        if (solarTextWidth > rightBlockWidth) {
+            rightBlockWidth = solarTextWidth;
+        }
 
         // Calculate total combined width of the entire group (Time + Line + Right Block + Padding)
         var totalWidth = timeWidth + lineSpacing + lineWidth + lineSpacing + 1 + rightBlockWidth + rightPadding;
@@ -161,13 +181,13 @@ class SolarisMinimalView extends WatchUi.WatchFace {
 
         // Draw Hours
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(startX, numY, hourMinuteFont, hhString, Graphics.TEXT_JUSTIFY_LEFT);
+        dc.drawText(startX, hourNumY, hourFont, hhString, Graphics.TEXT_JUSTIFY_LEFT);
         
         // Draw first colon
         dc.drawText(startX + hhWidth + 2, colY, colFont, ":", Graphics.TEXT_JUSTIFY_LEFT);
         
         // Draw Minutes
-        dc.drawText(startX + hhWidth + colWidth + 4, numY, hourMinuteFont, mmString, Graphics.TEXT_JUSTIFY_LEFT);
+        dc.drawText(startX + hhWidth + colWidth + 4, numY, minuteFont, mmString, Graphics.TEXT_JUSTIFY_LEFT);
 
         // Draw Seconds (positioned directly next to the red line, right-aligned with the Minutes block to keep spacing identical)
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
@@ -190,22 +210,22 @@ class SolarisMinimalView extends WatchUi.WatchFace {
         // Draw the vertical red line on the right side of the time
         var lineX = startX + timeWidth + lineSpacing;
         dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
-        var extraHeight = 10; // 想要總共增加的長度（像素）
-        dc.fillRectangle(lineX, numY - (extraHeight / 2), lineWidth, fontHeight + extraHeight);
-        // dc.fillRectangle(lineX, numY, lineWidth, fontHeight);
+        var extraHeight = 20; // Total extra height to add in pixels 
+        dc.fillRectangle(lineX, numY - (extraHeight / 2), lineWidth, minuteHeight + extraHeight);
 
-        // Draw Date, Battery, Days, and HR Info on the right side of the red line
+        // Draw Date, Battery, Solar, Days, and HR Info on the right side of the red line
         var batteryX = lineX + lineWidth + lineSpacing + 1;
         var tinyFontHeight = dc.getFontHeight(batteryFont);
         var textSpacing = 2;
-        var totalTextHeight = tinyFontHeight * 4 + textSpacing * 3;
+        var totalTextHeight = tinyFontHeight * 5 + textSpacing * 4;
         var rightBlockY = centerY - (totalTextHeight / 2);
 
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         dc.drawText(batteryX, rightBlockY, batteryFont, _dateText, Graphics.TEXT_JUSTIFY_LEFT);
         dc.drawText(batteryX, rightBlockY + tinyFontHeight + textSpacing, batteryFont, _batteryText, Graphics.TEXT_JUSTIFY_LEFT);
-        dc.drawText(batteryX, rightBlockY + (tinyFontHeight + textSpacing) * 2, batteryFont, _batteryDaysText, Graphics.TEXT_JUSTIFY_LEFT);
-        dc.drawText(batteryX, rightBlockY + (tinyFontHeight + textSpacing) * 3, batteryFont, _hrText, Graphics.TEXT_JUSTIFY_LEFT);
+        dc.drawText(batteryX, rightBlockY + (tinyFontHeight + textSpacing) * 2, batteryFont, _solarText, Graphics.TEXT_JUSTIFY_LEFT);
+        dc.drawText(batteryX, rightBlockY + (tinyFontHeight + textSpacing) * 3, batteryFont, _batteryDaysText, Graphics.TEXT_JUSTIFY_LEFT);
+        dc.drawText(batteryX, rightBlockY + (tinyFontHeight + textSpacing) * 4, batteryFont, _hrText, Graphics.TEXT_JUSTIFY_LEFT);
     
         // --- DRAW YAHAUSAGI BITMAP AND DAILY STEPS ---
         var steps = 0;
@@ -228,7 +248,7 @@ class SolarisMinimalView extends WatchUi.WatchFace {
         var stepsX = combinedStartX + imgWidth + spacing;
 
         // Y-axis: Position below the red line's bottom
-        var imgY = numY + fontHeight + (extraHeight / 2) + 25;
+        var imgY = numY + minuteHeight + (extraHeight / 2) + 20;
         var stepsY = imgY + (imgHeight - dc.getFontHeight(batteryFont)) / 2;
 
         // Draw image and daily steps
