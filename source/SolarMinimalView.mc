@@ -180,7 +180,7 @@ class SolarMinimalView extends WatchUi.WatchFace {
             _hourNumY = _numY + (_minuteHeight - _hourHeight) / 2;
             _colY = _numY + (_minuteHeight - _colHeight) / 2;
             _secY = _numY + _minuteHeight - 16;
-            _sunEventsY = _numY - 35;
+            _sunEventsY = _numY - 15;
             
             var lineWidth = 3;
             var lineSpacing = 5;
@@ -210,7 +210,7 @@ class SolarMinimalView extends WatchUi.WatchFace {
             
             var textSpacing = 2;
             var totalTextHeight = _batteryFontHeight * 5 + textSpacing * 4;
-            _rightBlockY = centerY - (totalTextHeight / 2);
+            _rightBlockY = centerY - (totalTextHeight / 2) - 5;
 
             // 底部烏薩奇與步數座標
             var imgWidth = _yahaUsagiBmp.getWidth();
@@ -240,7 +240,7 @@ class SolarMinimalView extends WatchUi.WatchFace {
         
         // 頂部日出日落時間 (置中對齊在時分數字上方)
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(_startX + (_timeWidth / 2), _sunEventsY, Graphics.FONT_XTINY, _sunEventsText, Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(_startX + (_timeWidth / 2) + 15, _sunEventsY, Graphics.FONT_XTINY, _sunEventsText, Graphics.TEXT_JUSTIFY_CENTER);
 
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         // 時、冒號、分
@@ -253,7 +253,7 @@ class SolarMinimalView extends WatchUi.WatchFace {
 
         // 紅線
         dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
-        dc.fillRectangle(_lineX, _numY - 10, 3, _minuteHeight + 20); // 20 是 extraHeight
+        dc.fillRectangle(_lineX, _numY - 15, 3, _minuteHeight + 30); // 20 是 extraHeight
 
         // 右側資料群組
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
