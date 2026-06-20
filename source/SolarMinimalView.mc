@@ -98,7 +98,7 @@ class SolarMinimalView extends WatchUi.WatchFace {
             
             // 更新電量與太陽能
             var stats = System.getSystemStats();
-            _batteryText = "PW: " + stats.battery.format("%d") + "%";
+            _batteryText = "PW: " + stats.battery.format("%d") + "0%";
             if (stats has :batteryInDays && stats.batteryInDays != null) {
                 _batteryDaysText = "D-: " + stats.batteryInDays.format("%d") + "D";
             } else {
